@@ -121,3 +121,27 @@ Services in `backend/src/services/` contain all calculations:
 
 ### 3. Anomaly Approvals & meera's rule
 Duplicates are never automatically deleted. They appear in the `Import Review` screen as review items. The user must manually click `Approve` or `Reject` before they commit as expenses.
+
+---
+
+## ☁️ Deployment (Render & Vercel)
+
+### Backend (Render Web Service)
+Due to the migration from JavaScript to TypeScript, the backend is compiled into the `dist/` directory. Update your Render settings as follows:
+
+1. **Root Directory**: `backend` (highly recommended to isolate the backend)
+2. **Build Command**: `npm install && npm run build && npx prisma migrate deploy`
+3. **Start Command**: `node dist/server.js`
+4. **Environment Variables**:
+   * `DATABASE_URL`: Your Neon/Render PostgreSQL connection string.
+   * `JWT_SECRET`: A secure signing key.
+
+*If you deploy from the repository root instead of setting the `backend` Root Directory, use:*
+* **Build Command**: `npm install --prefix backend && npm run build --prefix backend`
+* **Start Command**: `node backend/dist/server.js`
+
+### Frontend (Vercel)
+1. **Framework Preset**: `Vite` (or `Other`)
+2. **Root Directory**: `frontend`
+3. **Build Command**: `npm run build`
+4. **Output Directory**: `dist`
