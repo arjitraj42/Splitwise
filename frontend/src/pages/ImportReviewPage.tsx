@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
-import { AlertTriangle, CheckCircle, XCircle, ArrowLeft, ArrowRight, Eye } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface Anomaly {
   id: number;

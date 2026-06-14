@@ -91,6 +91,12 @@ const SettlementsPage: React.FC = () => {
         </button>
       </div>
 
+      {isLoading && (
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-600"></div>
+        </div>
+      )}
+
       {error && (
         <div className="p-4 rounded-2xl bg-red-50 text-red-600 font-semibold border border-red-100">
           Failed to load settlements.

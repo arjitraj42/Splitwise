@@ -6,7 +6,7 @@ import { IUserRepository } from '../repositories/interfaces/user.repository.inte
 import { IExpenseRepository } from '../repositories/interfaces/expense.repository.interface';
 import { ISettlementRepository } from '../repositories/interfaces/settlement.repository.interface';
 import { parseCSV, parseAmount, parseDate, ParsedCsvRow } from './csv.service';
-import { runAnomalyDetectors } from './anomaly.service';
+import { runAnomalyDetectors, SETTLEMENT_KEYWORDS } from './anomaly.service';
 import { computeSplits } from './split.service';
 import { getExchangeRate } from './currency.service';
 
@@ -328,7 +328,7 @@ export class ImportService {
       }
 
       // Check if it is a settlement reclassification
-      const isSettlementKeyword = SETTLEMENT_KEYWORDS.some((kw) => desc.toLowerCase().includes(kw));
+      const isSettlementKeyword = SETTLEMENT_KEYWORDS.some((kw: string) => desc.toLowerCase().includes(kw));
       const allUsers = await this.userRepo.findAll();
       const userMap = new Map<string, any>();
       allUsers.forEach((u) => userMap.set(u.name.toLowerCase().trim(), u));

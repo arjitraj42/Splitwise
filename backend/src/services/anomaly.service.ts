@@ -6,7 +6,7 @@ export interface AnomalyResult {
   suggestedAction: string;
 }
 
-const SETTLEMENT_KEYWORDS = ['paid back', 'settle', 'repay', 'reimburs', 'transfer', 'returned', 'sent back', 'refunded'];
+export const SETTLEMENT_KEYWORDS = ['paid back', 'settle', 'repay', 'reimburs', 'transfer', 'returned', 'sent back', 'refunded'];
 const SUPPORTED_CURRENCIES = ['INR', 'USD'];
 
 function normalizeName(name: string): string {

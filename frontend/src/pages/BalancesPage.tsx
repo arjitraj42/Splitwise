@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { ArrowLeft, User, HelpCircle, ArrowRight, Wallet, Landmark, TrendingUp, RefreshCw } from 'lucide-react';
+import { ArrowLeft, User, HelpCircle, ArrowRight, RefreshCw } from 'lucide-react';
 
 interface UserDetail {
   id: number;

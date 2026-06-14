@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
-import { Calendar, Plus, Trash2, ArrowLeft, X, IndianRupee } from 'lucide-react';
+import { Calendar, Plus, Trash2, ArrowLeft, X, Receipt } from 'lucide-react';
 
 interface ExpenseSplit {
   id: number;
@@ -57,7 +57,6 @@ const ExpensesPage: React.FC = () => {
   const [exactAmounts, setExactAmounts] = useState<Record<number, string>>({});
   const [percentages, setPercentages] = useState<Record<number, string>>({});
   const [formError, setFormError] = useState('');
-  const [saving, setSaving] = useState(false);
 
   // 1. Fetch Group Details (for memberships)
   const { data: group } = useQuery({
@@ -171,7 +170,7 @@ const ExpensesPage: React.FC = () => {
         userId: m.user.id,
         amount: Number(exactAmounts[m.user.id] || 0),
       }));
-      const sum = splits.reduce((s, x) => s + x.amount, 0);
+      const sum = splits.reduce((s: number, x: { amount: number }) => s + x.amount, 0);
       if (Math.abs(sum - amt) > 0.01) {
         setFormError(`Split amounts sum (₹${sum.toFixed(2)}) must match total amount (₹${amt.toFixed(2)})`);
         return;
@@ -182,7 +181,7 @@ const ExpensesPage: React.FC = () => {
         userId: m.user.id,
         percentage: Number(percentages[m.user.id] || 0),
       }));
-      const sum = splits.reduce((s, x) => s + x.percentage, 0);
+      const sum = splits.reduce((s: number, x: { percentage: number }) => s + x.percentage, 0);
       if (Math.abs(sum - 100) > 0.01) {
         setFormError(`Percentages must sum to exactly 100% (currently ${sum.toFixed(1)}%)`);
         return;
@@ -234,6 +233,12 @@ const ExpensesPage: React.FC = () => {
           Add Expense
         </button>
       </div>
+
+      {isLoading && (
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-brand-600"></div>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 rounded-2xl bg-red-50 text-red-600 font-semibold border border-red-100">

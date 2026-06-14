@@ -12,9 +12,8 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async findByName(name: string): Promise<User | null> {
-    return prisma.user.findFirst({
-      where: { name: { equals: name, mode: 'insensitive' } },
-    });
+    const users = await prisma.user.findMany();
+    return users.find(u => u.name.toLowerCase() === name.toLowerCase()) || null;
   }
 
   async create(data: { name: string; email: string; passwordHash: string }): Promise<User> {
