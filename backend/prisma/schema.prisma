@@ -1,0 +1,139 @@
+// schema.prisma - SQLite Local Data Model definition
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  memberships     GroupMembership[]
+  paidExpenses    Expense[]         @relation("PaidBy")
+  expenseSplits   ExpenseSplit[]
+  sentSettlements Settlement[]      @relation("SentSettlements")
+  rcvdSettlements Settlement[]      @relation("RcvdSettlements")
+
+  @@map("users")
+}
+
+model Group {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  memberships GroupMembership[]
+  expenses    Expense[]
+  settlements Settlement[]
+
+  @@map("groups")
+}
+
+// Historical memberships table. A user is active in a group
+// only during the window [joinedAt, leftAt).
+model GroupMembership {
+  id       Int       @id @default(autoincrement())
+  groupId  Int       @map("group_id")
+  userId   Int       @map("user_id")
+  joinedAt DateTime  @default(now()) @map("joined_at")
+  leftAt   DateTime? @map("left_at")   // null means currently active
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@map("group_memberships")
+}
+
+model Expense {
+  id            Int       @id @default(autoincrement())
+  groupId       Int       @map("group_id")
+  paidById      Int       @map("paid_by")
+  amount        Decimal   @map("amount")
+  currency      String    @default("INR")
+  amountInInr   Decimal   @map("amount_in_inr")
+  exchangeRate  Decimal   @map("exchange_rate") @default(1.0)
+  description   String
+  date          DateTime
+  splitType     String    @map("split_type") // EQUAL, EXACT, PERCENTAGE
+  createdAt     DateTime  @default(now()) @map("created_at")
+  importBatchId Int?      @map("import_batch_id")
+
+  group  Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidBy User           @relation("PaidBy", fields: [paidById], references: [id])
+  splits ExpenseSplit[]
+  batch  ImportBatch?   @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
+  @@map("expenses")
+}
+
+// Participant shares. Stores the calculated INR amount for each participant.
+model ExpenseSplit {
+  id          Int     @id @default(autoincrement())
+  expenseId   Int     @map("expense_id")
+  userId      Int     @map("user_id")
+  shareAmount Decimal @map("share_amount")
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@map("expense_splits")
+}
+
+// Settlements system (distinct from expenses)
+model Settlement {
+  id                     Int      @id @default(autoincrement())
+  groupId                Int      @map("group_id")
+  fromUserId             Int      @map("from_user")
+  toUserId               Int      @map("to_user")
+  amount                 Decimal  @map("amount")
+  currency               String   @default("INR")
+  exchangeRate           Decimal  @map("exchange_rate") @default(1.0)
+  normalizedAmountInInr Decimal  @map("normalized_amount_in_inr")
+  settlementDate         DateTime @map("settlement_date")
+  note                   String?
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  fromUser User  @relation("SentSettlements", fields: [fromUserId], references: [id])
+  toUser   User  @relation("RcvdSettlements", fields: [toUserId], references: [id])
+
+  @@map("settlements")
+}
+
+model ImportBatch {
+  id             Int             @id @default(autoincrement())
+  filename       String
+  createdAt      DateTime        @default(now()) @map("created_at")
+  createdBy      Int?            @map("created_by")
+  normalizations String?         
+
+  expenses  Expense[]
+  anomalies ImportAnomaly[]
+
+  @@map("import_batches")
+}
+
+model ImportAnomaly {
+  id              Int       @id @default(autoincrement())
+  batchId         Int       @map("batch_id")
+  rowNumber       Int       @map("row_number")
+  rowData         String    @map("row_data") // JSON serialized original CSV row
+  detectorName    String    @map("detector_name")
+  suggestedAction String    @map("suggested_action")
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  resolvedAt      DateTime? @map("resolved_at")
+
+  batch ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@map("import_anomalies")
+}
